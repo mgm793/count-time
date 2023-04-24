@@ -1,5 +1,6 @@
 (() => {
   const workingHours = 8;
+  let interval;
   const localStorageKey = "saved-work-times";
   const stepsInfo = {
     start: {
@@ -35,6 +36,12 @@
     const times = getTimes();
     const step = getStep(times);
     if (step === "done") return;
+    if (step === "lunchStart") {
+      interval = setInterval(lunchTimer, 1000);
+    }
+    if (step === "lunchEnd") {
+      clearInterval(interval);
+    }
     changeBtnText(nextId(step));
     const newTime = new Date();
     const item = document.getElementById(getItemId(step));
@@ -120,6 +127,37 @@
     finishItem.innerText = getUserDate(calculateExitTime());
     btn.addEventListener("click", reset);
     return;
+  }
+
+  function getSeconds(date1, date2) {
+    const totalSeconds1 =
+      date1.getSeconds() + date1.getMinutes() * 60 + date1.getHours() * 3600;
+    const totalSeconds2 =
+      date2.getSeconds() + date2.getMinutes() * 60 + date2.getHours() * 3600;
+    const sec = Math.abs(totalSeconds1 - totalSeconds2);
+    return {
+      hours: sec / 3600,
+      minutes: (sec % 3600) / 60,
+      seconds: (sec % 3600) % 60,
+    };
+  }
+
+  function lunchTimer() {
+    const times = getTimes();
+    const lunchStart = new Date(times.lunchStart);
+    const actualTime = new Date();
+    const timeSpent = getSeconds(lunchStart, actualTime);
+    const timeContainer = document.getElementById("lunch-spent");
+    timeContainer.innerText = getUserDate(
+      new Date(
+        2023,
+        0,
+        1,
+        timeSpent.hours,
+        timeSpent.minutes,
+        timeSpent.seconds
+      )
+    );
   }
 
   function init() {
