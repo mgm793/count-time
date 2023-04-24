@@ -33,7 +33,6 @@
 
   function next() {
     const times = getTimes();
-    console.log(times);
     const step = getStep(times);
     if (step === "done") return;
     changeBtnText(nextId(step));
@@ -48,7 +47,6 @@
   }
 
   function changeBtnText(step) {
-    console.log(step);
     const btn = document.getElementById("action-btn");
     btn.innerText = getBtnText(step);
   }
@@ -100,12 +98,12 @@
     const start = new Date(times.start);
     const lunchStart = new Date(times.lunchStart);
     const lunchEnd = new Date(times.lunchEnd);
-    const miliseconds =
+    const milliseconds =
       workingHours * 3_600_000 +
       start.getTime() -
       lunchStart.getTime() +
       lunchEnd.getTime();
-    return new Date(miliseconds);
+    return new Date(milliseconds);
   }
 
   function reset() {
