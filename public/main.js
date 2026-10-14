@@ -1,5 +1,6 @@
 (() => {
   const workingHours = 8;
+  const lunchMinutes = 45;
   let interval;
   const localStorageKey = "saved-work-times";
   const stepsInfo = {
@@ -48,6 +49,9 @@
     item.innerText = getUserDate(newTime);
     times[step] = newTime;
     setTimes(times);
+    if (step === "lunchStart") {
+      showLunchReturnTime();
+    }
     if (step === "lunchEnd") {
       end();
     }
@@ -113,8 +117,37 @@
     return new Date(milliseconds);
   }
 
+  function showLunchReturnTime() {
+    const times = getTimes();
+    let el = document.getElementById("lunch-return");
+
+    // Si no hay comida iniciada (p. ej. tras Reset), quitamos el aviso
+    if (!times.lunchStart) {
+      if (el) el.remove();
+      return;
+    }
+
+    // Si no existe el elemento, lo creamos debajo de la hora de "Lunch"
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "lunch-return";
+      document
+        .getElementById(stepsInfo.lunchStart.itemId)
+        .insertAdjacentElement("afterend", el);
+    }
+
+    const back = new Date(
+      new Date(times.lunchStart).getTime() + lunchMinutes * 60_000
+    );
+    el.innerText = `Vuelve a las ${getUserDate(back)}`;
+  }
+
   function reset() {
     localStorage.removeItem("saved-work-times");
+    clearInterval(interval);
+    const spent = document.getElementById("lunch-spent");
+    if (spent) spent.innerText = "";
+    document.getElementById("action-btn").classList.remove("action-btn-done");
     init();
   }
 
@@ -163,6 +196,18 @@
   function init() {
     const step = getStep();
     setTimeTexts();
+    showLunchReturnTime();
+
+    // Evita intervalos duplicados (p. ej. tras un Reset)
+    clearInterval(interval);
+
+    // Si estás en plena comida (Lunch pulsado, "Work again" aún no),
+    // reactiva el contador al recargar la página
+    if (step === "lunchEnd") {
+      lunchTimer(); // pinta el tiempo ya, sin esperar 1 segundo
+      interval = setInterval(lunchTimer, 1000);
+    }
+
     if (step === "done") {
       return end();
     }
